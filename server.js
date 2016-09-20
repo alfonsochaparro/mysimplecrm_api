@@ -2,7 +2,10 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 
-var Customer = require('./models/customer');
+var customerController = require('./controllers/customer');
+var userController = require('./controllers/user');
+var passport = require('passport');
+var authController = require('./controllers/auth');
 
 mongoose.connect('mongodb://localhost:27017/mysimplecrm');
 
@@ -12,45 +15,27 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }));
 
-var port = process.env.PORT || 3000;
+app.use(passport.initialize());
 
 var router = express.Router();
 
-router.get('/', function(req, res) {
-	res.json({ message: '123456' });
-});
+router.route('/customers')
+	.get(authController.isAuthenticated, customerController.getCustomers)
+	.post(authController.isAuthenticated, customerController.postCustomer);
 
-var customersRoute = router.route('/customers');
+router.route('/customers/:customer_id')
+	.get(authController.isAuthenticated, customerController.getCustomer)
+	.put(authController.isAuthenticated, customerController.putCustomer)
+	.delete(authController.isAuthenticated, customerController.deleteCustomer);
 
-customersRoute.post(function(req, res) {
-	var customer = new Customer();
+router.route('/users')
+	.post(userController.postUser);
 
-	customer.name = req.body.name;
-	customer.url = req.body.url;
-	customer.address = req.body.address;
-	customer.city = req.body.city;
-
-	customer.save(function(err) {
-		if(err) {
-			res.send(err);
-		}
-
-		res.json({ message: 'Customer added successfully!', data: customer});
-	});
-
-});
-
-customersRoute.get(function(req, res) {
-	Customer.find(function(err, customers) {
-		if(err) {
-			res.send(err);
-		}
-
-		res.json(customers);
-	});
-});
+router.route('/users/:user_id')
+	.put(authController.isAuthenticated, userController.putUser)
+	.delete(authController.isAuthenticated, userController.deleteUser);
 
 app.use('/api', router);
 
-app.listen(port);
-console.log('mysimplecrm api running on ' + port);
+app.listen(3000);
+console.log('mysimplecrm api running on 3000');
