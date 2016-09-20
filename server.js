@@ -17,6 +17,14 @@ app.use(bodyParser.urlencoded({
 
 app.use(passport.initialize());
 
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
+
 var router = express.Router();
 
 router.route('/customers')
@@ -30,6 +38,9 @@ router.route('/customers/:customer_id')
 
 router.route('/users')
 	.post(userController.postUser);
+
+router.route('/login')
+	.post(authController.isAuthenticated, userController.getUser);
 
 router.route('/users/:user_id')
 	.put(authController.isAuthenticated, userController.putUser)

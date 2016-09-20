@@ -26,10 +26,12 @@ exports.getUsers = function(req, res) {
 };
 
 exports.getUser = function(req, res) {
-	User.findById(req.params.user_id, function(err, user) {
+	User.findById(req.user._id, function(err, user) {
 		if(err) {
 			res.send(err);
 		}
+
+		user.password = "";
 
 		res.json(user);
 	});
