@@ -5,7 +5,12 @@ var CustomerSchema = new mongoose.Schema({
 	url: String,
 	address: String,
 	city: String,
-	userId: String
+	userId: String,
+	projects: [{
+		type: mongoose.Schema.Types.ObjectId, 
+		ref: 'Project'
+	}],
+	picture: { type: mongoose.Schema.Types.ObjectId, ref: 'File' }
 });
 
 module.exports = mongoose.model('Customer', CustomerSchema);

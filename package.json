@@ -6,6 +6,7 @@
     "body-parser": "^1.15.2",
     "express": "~4.1.1",
     "mongoose": "^4.6.0",
+    "multer": "^1.2.0",
     "passport": "^0.3.2",
     "passport-http": "^0.3.0"
   }

@@ -9,6 +9,14 @@ exports.postCustomer = function(req, res) {
 	customer.city = req.body.city;
 	customer.userId = req.user._id;
 
+	if(req.projects) {
+		customer.projects = req.projects;
+	}
+
+	if(req.picture) {
+		customer.picture = req.picture;
+	}
+
 	customer.save(function(err) {
 		if(err) {
 			res.send(err);
@@ -19,35 +27,55 @@ exports.postCustomer = function(req, res) {
 };
 
 exports.getCustomers = function(req, res) {
-	Customer.find({ userId: req.user._id }, function(err, customers) {
-		if(err) {
-			res.send(err);
-		}
+	Customer.find({ userId: req.user._id })
+		.select("-__v")
+		.populate("picture", "-_id path mimetype")
+		.exec(function(err, customers) {
+			if(err) {
+				res.send(err);
+			}
 
-		res.json(customers);
-	});
+			res.json(customers);
+		});
 };
 
 exports.getCustomer = function(req, res) {
-	Customer.find({ userId: req.user._id, _id: req.params.customer_id }, function(err, customer) {
+	Customer.findOne({ userId: req.user._id, _id: req.params.customer_id })
+		.select("-__v")
+		.populate("projects")
+		.populate("picture", "-_id path mimetype")
+		.exec(function(err, customer) {
 		if(err) {
 			res.send(err);
 		}
 
-		res.json(customer);
+		if(customer) {
+			res.json(customer);
+		}
+		else {
+			res.json({ message: 'Not found' });
+		}
 	});
 };
 
 exports.putCustomer = function(req, res) {
-	Customer.find({ userId: req.user._id, _id: req.params.customer_id }, function(err, customer) {
+	Customer.findOne({ userId: req.user._id, _id: req.params.customer_id }, function(err, customer) {
 		if(err) {
 			res.send(err);
 		}
+
+		if(!customer) {
+			res.json({ message: 'Not found' });
+			return;
+		}
+		console.log(req.body.picture);
 
 		if(req.body.name) customer.name = req.body.name;
 		if(req.body.url) customer.url = req.body.url;
 		if(req.body.address) customer.address = req.body.address;
 		if(req.body.city) customer.city = req.body.city;
+		if(req.body.projects) customer.projects = req.body.projects;		
+		if(req.body.picture) customer.picture = req.body.picture;
 
 		customer.save(function(err) {
 			if(err) {
@@ -60,11 +88,22 @@ exports.putCustomer = function(req, res) {
 };
 
 exports.deleteCustomer = function(req, res) {
-	Customer.remove({ userId: req.user._id, _id: req.params.customer_id }, function(err) {
+	Customer.findOne({ userId: req.user._id, _id: req.params.customer_id }, function(err, customer) {
 		if(err) {
 			res.send(err);
 		}
 
-		res.json({ message: 'Customer removed successfully!' });
+		if(!customer) {
+			res.json({ message: 'Not found' });
+		}
+		else {
+			customer.remove(function(err) {
+				if(err) {
+					res.send(err);
+				}
+
+				res.json({ message: 'Customer removed successfully!' });
+			});
+		}
 	});
 };

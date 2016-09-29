@@ -2,8 +2,8 @@ var mongoose = require('mongoose');
 
 var ProjectSchema = new mongoose.Schema({
 	name: String,
-	clientId: String,
-	dateCreation: Date,
+	customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
+	dateCreation: { type: Date, default: Date.now },
 	dateEnd: Date,
 	state: String,
 	repo: String,

@@ -64,3 +64,41 @@ exports.deleteUser = function(req, res) {
 		res.json({ message: 'User removed successfully!' });
 	});
 };
+
+exports.doLogin = function(req, res) {
+	var errors = [];
+
+	if(!req.body.username) errors.push({ message: 'Missing param username' });
+	if(!req.body.password) errors.push({ message: 'Missing param password' });
+
+	if(errors.length > 0) {
+		res.send({ errors: errors });
+	}
+
+	User.findOne({ username: req.body.username }, function(err, user) {
+		if(err) res.send(err);
+
+		if(!user) {
+			res.json({ message: 'User ' + req.body.username + ' not found' });
+		}
+		else {
+			user.verifyPassword(req.body.password, function(err, isMatch) {
+				if(err) res.send(err);
+
+				if(!isMatch) {
+					res.json({ message: 'Invalid password' });
+				}
+				else {
+					var token = new Buffer(req.body.username + ":" + req.body.password)
+									.toString('base64');
+					
+					user = user.toObject();
+					delete user.password;
+					delete user.__v;
+
+					res.json({ token: token, user: user });
+				}
+			});
+		}
+	});
+};
